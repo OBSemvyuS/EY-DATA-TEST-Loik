@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: dim_product
+    description: Dimension table for products. One row per product_id.
+    columns:
+      - name: product_id
+        description: Primary key.
+        tests: [unique, not_null]
+  - name: dim_user
+    description: Dimension table for users. One row per user_id.
+    columns:
+      - name: user_id
+        description: Primary key.
+        tests: [unique, not_null]
+  - name: fact_cart_lines
+    description: Fact table at cart line level (one row per product in a cart). Links to dim_user and dim_product.
+    columns:
+      - name: event_id
+        tests: [not_null]
+      - name: cart_id
+        tests: [not_null]
+      - name: user_id
+        description: Foreign key to dim_user.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_user')
+              field: user_id
+      - name: product_id
+        description: Foreign key to dim_product.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_id
+      - name: quantity
+        tests: [not_null]
