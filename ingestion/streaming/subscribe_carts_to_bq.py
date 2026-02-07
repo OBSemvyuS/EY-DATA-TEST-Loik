@@ -12,12 +12,28 @@ import os
 import time
 from typing import Optional
 
+from google.api_core import exceptions as api_exceptions
 from google.cloud import bigquery, pubsub_v1
 
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "ey-data-test-486710")
 SUBSCRIPTION_ID = "carts-to-bq"
 DATASET_ID = "fakestore"
 TABLE_ID = "raw_carts"
+
+
+def _normalize_date_for_bq(value) -> Optional[str]:
+    """BigQuery DATE expects YYYY-MM-DD; API returns ISO timestamp e.g. 2020-03-01T00:00:00.000Z."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    # Take date part only (first 10 chars) if it looks like ISO timestamp
+    if "T" in s:
+        return s[:10]
+    if len(s) >= 10 and s[4] == "-" and s[7] == "-":
+        return s[:10]
+    return s
 
 
 def message_to_row(msg_data: dict) -> dict:
@@ -28,7 +44,7 @@ def message_to_row(msg_data: dict) -> dict:
         "published_at": msg_data.get("published_at"),
         "cart_id": msg_data.get("cart_id"),
         "user_id": msg_data.get("user_id"),
-        "cart_date": msg_data.get("cart_date"),
+        "cart_date": _normalize_date_for_bq(msg_data.get("cart_date")),
         "products_json": json.dumps(msg_data.get("products") or []),
     }
 
@@ -45,41 +61,52 @@ def run(
 
     started = time.monotonic()
     total_processed = 0
+    print("Subscriber started. Listening for messages (timeout 30s per pull). Ctrl+C to stop.", flush=True)
 
-    while True:
-        if max_messages is not None and total_processed >= max_messages:
-            print(f"Stopped: max_messages={max_messages} reached.")
-            break
-        if max_duration_sec is not None and (time.monotonic() - started) >= max_duration_sec:
-            print(f"Stopped: max_duration={max_duration_sec}s reached.")
-            break
+    try:
+        while True:
+            if max_messages is not None and total_processed >= max_messages:
+                print(f"Stopped: max_messages={max_messages} reached.")
+                break
+            if max_duration_sec is not None and (time.monotonic() - started) >= max_duration_sec:
+                print(f"Stopped: max_duration={max_duration_sec}s reached.")
+                break
 
-        response = subscriber.pull(
-            request={"subscription": subscription_path, "max_messages": 10},
-            timeout=5.0,
-        )
-        if not response.received_messages:
-            time.sleep(2)
-            continue
-
-        rows = []
-        ack_ids = []
-        for msg in response.received_messages:
             try:
-                data = json.loads(msg.message.data.decode("utf-8"))
-                rows.append(message_to_row(data))
-                ack_ids.append(msg.ack_id)
-            except Exception as e:
-                print(f"Skip message: {e}")
+                response = subscriber.pull(
+                    request={"subscription": subscription_path, "max_messages": 10},
+                    timeout=30.0,
+                )
+            except api_exceptions.DeadlineExceeded:
+                print("Waiting for messages...")
+                time.sleep(2)
+                continue
 
-        if rows:
-            errors = bq_client.insert_rows_json(table_ref, rows)
-            if errors:
-                print(f"BigQuery insert errors: {errors}")
-            else:
-                subscriber.acknowledge(request={"subscription": subscription_path, "ack_ids": ack_ids})
-                total_processed += len(rows)
-                print(f"Inserted {len(rows)} rows (total {total_processed})")
+            if not response.received_messages:
+                print("Waiting for messages...")
+                time.sleep(2)
+                continue
+
+            rows = []
+            ack_ids = []
+            for msg in response.received_messages:
+                try:
+                    data = json.loads(msg.message.data.decode("utf-8"))
+                    rows.append(message_to_row(data))
+                    ack_ids.append(msg.ack_id)
+                except Exception as e:
+                    print(f"Skip message: {e}")
+
+            if rows:
+                errors = bq_client.insert_rows_json(table_ref, rows)
+                if errors:
+                    print(f"BigQuery insert errors: {errors}")
+                else:
+                    subscriber.acknowledge(request={"subscription": subscription_path, "ack_ids": ack_ids})
+                    total_processed += len(rows)
+                    print(f"Inserted {len(rows)} rows (total {total_processed})")
+    except KeyboardInterrupt:
+        print("\nStopped by user (Ctrl+C).")
 
     print(f"Done. Total rows inserted into BigQuery: {total_processed}")
 

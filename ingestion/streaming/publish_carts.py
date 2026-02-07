@@ -58,25 +58,28 @@ def run(interval_sec: int, max_polls: Optional[int], max_duration_sec: Optional[
     started = time.monotonic()
     poll_count = 0
     total_published = 0
+    print(f"Publisher started. Polling every {interval_sec}s, max_polls={max_polls}. Ctrl+C to stop.", flush=True)
 
-    while True:
-        if max_polls is not None and poll_count >= max_polls:
-            print(f"Stopped: max_polls={max_polls} reached.")
-            break
-        if max_duration_sec is not None and (time.monotonic() - started) >= max_duration_sec:
-            print(f"Stopped: max_duration={max_duration_sec}s reached.")
-            break
+    try:
+        while True:
+            if max_polls is not None and poll_count >= max_polls:
+                print(f"Stopped: max_polls={max_polls} reached.")
+                break
+            if max_duration_sec is not None and (time.monotonic() - started) >= max_duration_sec:
+                print(f"Stopped: max_duration={max_duration_sec}s reached.")
+                break
 
-        try:
-            carts = fetch_carts()
-            n = publish_cart_events(publisher, topic_path, carts)
-            total_published += n
-            poll_count += 1
-            print(f"Poll #{poll_count}: published {n} cart events (total {total_published})")
-        except Exception as e:
-            print(f"Error: {e}")
-            # Continue or break; here we continue after one failure
-        time.sleep(interval_sec)
+            try:
+                carts = fetch_carts()
+                n = publish_cart_events(publisher, topic_path, carts)
+                total_published += n
+                poll_count += 1
+                print(f"Poll #{poll_count}: published {n} cart events (total {total_published})")
+            except Exception as e:
+                print(f"Error: {e}")
+            time.sleep(interval_sec)
+    except KeyboardInterrupt:
+        print("\nStopped by user (Ctrl+C).")
 
     print(f"Done. Total polls={poll_count}, total events published={total_published}")
 
