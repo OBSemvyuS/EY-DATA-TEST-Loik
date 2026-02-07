@@ -1,0 +1,20 @@
+# Sources: raw tables in BigQuery (external + streaming)
+# Project: ey-data-test-486710, dataset: fakestore
+
+version: 2
+
+sources:
+  - name: fakestore
+    description: Raw data from Fake Store API (batch) and carts (streaming)
+    database: ey-data-test-486710
+    schema: fakestore
+    tables:
+      - name: raw_products_external
+        description: Products from batch ingestion (external table on GCS NDJSON)
+        identifier: raw_products_external
+      - name: raw_users_external
+        description: Users from batch ingestion (external table on GCS NDJSON)
+        identifier: raw_users_external
+      - name: raw_carts
+        description: Cart events from streaming ingestion (Pub/Sub → BigQuery)
+        identifier: raw_carts

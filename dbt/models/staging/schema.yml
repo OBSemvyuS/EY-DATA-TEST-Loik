@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: Staging view over raw products (batch).
+    columns:
+      - name: product_id
+        description: Product identifier
+        tests: [not_null]
+  - name: stg_users
+    description: Staging view over raw users (batch).
+    columns:
+      - name: user_id
+        description: User identifier
+        tests: [not_null]
+  - name: stg_carts
+    description: Staging view over raw cart events (streaming).

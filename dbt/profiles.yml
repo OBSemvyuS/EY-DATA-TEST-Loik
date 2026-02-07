@@ -1,0 +1,15 @@
+# BigQuery profile — uses Application Default Credentials (ADC).
+# Run: gcloud auth application-default login
+# Then: dbt deps && dbt run
+
+dbt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: ey-data-test-486710
+      dataset: fakestore
+      threads: 1
+      # Optional: set location if needed (e.g. EU)
+      # location: EU
