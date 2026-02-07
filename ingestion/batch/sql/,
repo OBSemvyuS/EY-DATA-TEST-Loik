@@ -1,0 +1,7 @@
+  phone STRING
+)
+OPTIONS (
+  format = 'NEWLINE_DELIMITED_JSON',
+  uris = ['gs://ey-data-test-486710-raw/raw/users/*.json']
+); -- at [22:1]
+Created ey-data-test-486710.fakestore.raw_users_external

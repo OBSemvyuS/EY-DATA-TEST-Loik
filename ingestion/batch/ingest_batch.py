@@ -42,18 +42,21 @@ def run(ingestion_date: date) -> None:
     # 2. GCS client (ADC: no credentials passed)
     client = storage.Client()
 
-    # 3. Upload raw JSON (idempotent: same path per date)
+    # 3. Upload raw as NDJSON (one JSON object per line) for BigQuery external tables.
+    # Path format: raw/products/products_YYYY-MM-DD.json (single * in URI for BQ external table)
+    products_ndjson = "\n".join(json.dumps(p) for p in products)
+    users_ndjson = "\n".join(json.dumps(u) for u in users)
     upload_to_gcs(
         client,
         GCS_BUCKET,
-        f"raw/products/date={date_str}/products.json",
-        json.dumps(products, indent=2),
+        f"raw/products/products_{date_str}.json",
+        products_ndjson,
     )
     upload_to_gcs(
         client,
         GCS_BUCKET,
-        f"raw/users/date={date_str}/users.json",
-        json.dumps(users, indent=2),
+        f"raw/users/users_{date_str}.json",
+        users_ndjson,
     )
 
     print(f"Uploaded products and users to gs://{GCS_BUCKET}/raw/ for date={date_str}")
