@@ -1,5 +1,9 @@
 # EY Data Engineering Test
 
+## Architecture
+
+![Architecture diagram](assets/architecture.png)
+
 ---
 
 ## GCP setup: difficulties and solution
