@@ -45,4 +45,4 @@ I used AI-assisted coding (“vibe coding”) to build this. I want to be transp
 
 This exercise was really interesting, I spent a large part of my weekend on it and got to touch the full pipeline from API to analytics-ready tables. I am looking forward to joining and growing technically so I can better grasp all the subtleties. Thank you for the opportunity.  
 
-Loïk Ninine
+Loïk
