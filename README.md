@@ -12,9 +12,9 @@ Setting up GCP was one of the main difficulties. I ran into multiple blocked acc
 
 ---
 
-## Honesty about how this was built (vibe coding)
+## Technical approach & learning process
 
-I used AI-assisted coding (“vibe coding”) to build this. I want to be transparent about it: it allowed me to learn a lot in a short time, in one day I discovered and learned to use GCP, Cloud Storage, BigQuery, and Pub/Sub and to take the project as far as possible given the timeframe. I think it also shows that I can drive a project where I don’t have all the knowledge up front: I can work with documentation, tools, and assistance to deliver something concrete and explain what was done.
+I vibe-coded this project using AI-assisted development tools. I want to be transparent about this approach: it allowed me to learn a lot in a very short time. In a single day, I discovered and learned how to use GCP, Cloud Storage, BigQuery, and Pub/Sub, and pushed the project as far as possible given the timeframe. As discussed during my second interview, I identified the need to significantly deepen my technical skill set, and this project was a concrete way to do so while still delivering a functional result. More broadly, this approach demonstrates my ability to drive a project even when I don’t have all the knowledge up front: I can work effectively with documentation, tools, and assistance to deliver something tangible and clearly explain what was built.
 
 ---
 
